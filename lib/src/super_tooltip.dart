@@ -221,18 +221,21 @@ class _SuperTooltipState extends State<SuperTooltip>
     shadowOffset = widget.shadowOffset ?? Offset.zero;
     showBlur = widget.showDropBoxFilter;
 
-    return GestureDetector(
-      onTap: () {
-        if (widget.toggleOnTap && _superTooltipController!.isVisible) {
-          _superTooltipController!.hideTooltip();
-        } else {
-          if (widget.showOnTap) {
-            _superTooltipController!.showTooltip();
+    return CompositedTransformTarget(
+      link: _layerLink,
+      child: GestureDetector(
+        onTap: () {
+          if (widget.toggleOnTap && _superTooltipController!.isVisible) {
+            _superTooltipController!.hideTooltip();
+          } else {
+            if (widget.showOnTap) {
+              _superTooltipController!.showTooltip();
+            }
           }
-        }
-      },
-      onLongPress: widget.onLongPress,
-      child: widget.child,
+        },
+        onLongPress: widget.onLongPress,
+        child: widget.child,
+      ),
     );
   }
 
