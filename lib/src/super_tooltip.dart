@@ -227,13 +227,11 @@ class _SuperTooltipState extends State<SuperTooltip>
           if (widget.toggleOnTap && _superTooltipController!.isVisible) {
             _superTooltipController!.hideTooltip();
           } else {
-            if (widget.showOnTap) {
-              _superTooltipController!.showTooltip();
-            }
+            _superTooltipController!.showTooltip();
           }
         },
         onLongPress: widget.onLongPress,
-        child: widget.child,
+        child: widget.child, // Ensure this is outside the barrier
       ),
     );
   }
@@ -319,11 +317,6 @@ class _SuperTooltipState extends State<SuperTooltip>
     _barrierEntry = showBarrier
         ? OverlayEntry(
       builder: (context) {
-        // Get the RenderBox of the child to calculate its size and position
-        final renderBox = context.findRenderObject() as RenderBox;
-        final childPosition = renderBox.localToGlobal(Offset.zero);
-        final childSize = renderBox.size;
-
         return FadeTransition(
           opacity: animation,
           child: GestureDetector(
@@ -332,23 +325,19 @@ class _SuperTooltipState extends State<SuperTooltip>
                 : null,
             child: Stack(
               children: [
-                // The main barrier that covers everything
+                // Full-screen barrier, with transparency
                 Positioned.fill(
                   child: Container(
                     color: barrierColor,
                   ),
                 ),
-                // Exclude the child area from the barrier using Positioned
+                // Add the child widget on top of the barrier and make it unaffected
                 Positioned(
-                  left: childPosition.dx,
-                  top: childPosition.dy,
-                  width: childSize.width,
-                  height: childSize.height,
+                  left: _layerLink.leader!.offset.dx,
+                  top: _layerLink.leader!.offset.dy,
                   child: IgnorePointer(
-                    // Ignore the barrier for the child area
-                    child: Container(
-                      color: Colors.transparent, // Make it fully transparent
-                    ),
+                    // Ensure that the child is interactive and visible
+                    child: widget.child!,
                   ),
                 ),
               ],
