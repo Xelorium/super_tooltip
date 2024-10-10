@@ -5,7 +5,6 @@ import 'package:super_tooltip/src/utils.dart';
 
 import 'bubble_shape.dart';
 import 'enums.dart';
-import 'shape_overlay.dart';
 import 'super_tooltip_controller.dart';
 import 'tooltip_position_delegate.dart';
 
@@ -319,27 +318,45 @@ class _SuperTooltipState extends State<SuperTooltip>
 
     _barrierEntry = showBarrier
         ? OverlayEntry(
-            builder: (context) => FadeTransition(
-              opacity: animation,
-              child: GestureDetector(
-                onTap: widget.hideTooltipOnBarrierTap
-                    ? _superTooltipController!.hideTooltip
-                    : null,
-                child: Container(
-                  key: SuperTooltip.barrierKey,
-                  decoration: ShapeDecoration(
-                    shape: ShapeOverlay(
-                      clipAreaCornerRadius: widget.touchThroughAreaCornerRadius,
-                      clipAreaShape: widget.touchThroughAreaShape,
-                      clipRect: widget.touchThroughArea,
-                      barrierColor: barrierColor,
-                      overlayDimensions: widget.overlayDimensions,
+      builder: (context) {
+        // Get the RenderBox of the child to calculate its size and position
+        final renderBox = context.findRenderObject() as RenderBox;
+        final childPosition = renderBox.localToGlobal(Offset.zero);
+        final childSize = renderBox.size;
+
+        return FadeTransition(
+          opacity: animation,
+          child: GestureDetector(
+            onTap: widget.hideTooltipOnBarrierTap
+                ? _superTooltipController!.hideTooltip
+                : null,
+            child: Stack(
+              children: [
+                // The main barrier that covers everything
+                Positioned.fill(
+                  child: Container(
+                    color: barrierColor,
+                  ),
+                ),
+                // Exclude the child area from the barrier using Positioned
+                Positioned(
+                  left: childPosition.dx,
+                  top: childPosition.dy,
+                  width: childSize.width,
+                  height: childSize.height,
+                  child: IgnorePointer(
+                    // Ignore the barrier for the child area
+                    child: Container(
+                      color: Colors.transparent, // Make it fully transparent
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
-          )
+          ),
+        );
+      },
+    )
         : null;
 
     blur = showBlur
